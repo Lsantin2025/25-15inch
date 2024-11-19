@@ -2,7 +2,47 @@
 
 using namespace vex;
 
+// A global instance of vex::brain used for printing to the V5 brain screen
 vex::brain       Brain;
+
+/* Controller */
+
+controller Controller = (controllerType::primary);
+
+/*
+    Axis1 - Left & Right of the Right Joystick
+    Axis2 - Up & Down of the Right Joystick
+    Axis3 - Up & Down of the Left Joystick
+    Axis4 - Left & Right of the Left Joystick
+*/
+
+/* Controller Methods */
+
+void joy_controller(){ // Joystick Control
+    if (Controller.Axis1.position()){
+        int axis = Controller.Axis1.position();
+        Brain.Screen.print("Axis 1 Pos %d", axis);
+        Brain.Screen.newLine();
+    }
+    
+    if (Controller.Axis2.position()){
+        int axis = Controller.Axis2.position();
+        Brain.Screen.print("Axis 2 Pos: %d", axis);
+        Brain.Screen.newLine();
+    }
+
+    if (Controller.Axis3.position()){
+        int axis = Controller.Axis3.position();
+        Brain.Screen.print("Axis 3 Pos: %d", axis);
+        Brain.Screen.newLine();
+    }
+
+    if (Controller.Axis4.position()){
+        int axis = Controller.Axis4.position();
+        Brain.Screen.print("Axis 4 Pos: %d", axis);        
+        Brain.Screen.newLine();
+    }
+}
 
 /* Motors */
 
@@ -18,206 +58,118 @@ motor_group leftMotors = motor_group(LeftMotorA,LeftMotorB,LeftMotorC);
 motor_group rightMotors = motor_group(RightMotorA, RightMotorB,RightMotorC);
 drivetrain Drivetrain = drivetrain(leftMotors, rightMotors, 259.34, 320, 40, mm, 1);
 
-controller Controller(controllerType::primary);
+motor Intake(PORT5, gearSetting::ratio18_1, true);
+
 
 /* AI Vision Sensor */
 
-aivision::colordesc AIVision11__Red(1, 241, 79, 150, 16, 0.22);
-aivision::colordesc AIVision11__Blue(2, 81, 191, 233, 39, 0.24);
-aivision::colordesc AIVision11__Yellow(3, 188, 226, 129, 32, 1);
+// Robot configuration code.
+// AI Classification Competition Element IDs
+enum gameElements {
+  mobileGoal,
+  redRing,
+  blueRing,
+};
 
-aivision aiVision11 = aivision(PORT11, AIVision11__Red, AIVision11__Blue, AIVision11__Yellow);
+// AI Vision Color Descriptions
+aivision::colordesc aiVision15_Red(1, 235, 77, 139, 30, 0.3);
+aivision::colordesc aiVision15_Blue(2, 55, 147, 200, 28, 0.3);
+aivision::colordesc aiVision15_Yellow(3, 183, 220, 130, 30, 0.75);
 
-/* GPS Sensor */
+// AI Vision Code Descriptions
+vex::aivision aiVision15(PORT15, aiVision15_Red, aiVision15_Blue, aiVision15_Yellow, aivision::ALL_AIOBJS);
 
-gps GPS20 = gps(PORT20, 0);
-
-/* Motor Functions */
-
-void testDrivetrain(){ // Use arrow buttons on controller to move robot
-  if(Controller.ButtonUp.pressing()){
-    Drivetrain.drive(forward);
-  }
-
-  else if(Controller.ButtonDown.pressing()){
-    Drivetrain.drive(reverse);
-  }
-
-  else if(Controller.ButtonRight.pressing()){
-    Drivetrain.turn(right);
-  }
-
-  else if(Controller.ButtonLeft.pressing()){
-    Drivetrain.turn(left);
-  }
-  else {
-    Drivetrain.stop();
-  }
-}
-
-/*
-    Axis1 - Left & Right of the Right Joystick
-    Axis2 - Up & Down of the Right Joystick
-    Axis3 - Up & Down of the Left Joystick
-    Axis4 - Left & Right of the Left Joystick
-*/
-
-void joystick_Drivetrain(){ // Use joystick
-  if(Controller.Axis3.position() > 0){ // > 0
-    Drivetrain.drive(forward);
-  }
-
-  else if(Controller.Axis3.position() < 0){ // < 0
-    Drivetrain.drive(reverse);
-  }
-
-  else if(Controller.Axis1.position() > 0){ // > 0
-    Drivetrain.turn(right);
-  }
-
-  else if(Controller.Axis1.position() < 0){ // < 0
-    Drivetrain.turn(left);
-  }
-  else {
-    Drivetrain.stop();
-  }
-}
-
-/* AI Vision Sensor Functions */
+/* AI Vision Sensor Methods */
 
 void red_Info(){
-  Brain.Screen.clearScreen();
-  Controller.Screen.clearScreen();
-  
-  Brain.Screen.setCursor(1,1);
-  Brain.Screen.print("Red Ring");
+  aiVision15.takeSnapshot(aiVision15_Red);
+  if (aiVision15.objects[0].id == 1) {
+    Brain.Screen.setCursor(1,1);
+    Brain.Screen.print("Red Ring");
     
-  Brain.Screen.setCursor(2,1);
-  Brain.Screen.print("X Pos: %d", aiVision11.objects[0].centerX);
+    Brain.Screen.setCursor(2,1);
+    Brain.Screen.print("X Pos: %d", aiVision15.objects[0].centerX);
     
-  Brain.Screen.setCursor(3,1);
-  Brain.Screen.print("Y Pos: %d", aiVision11.objects[0].centerY);
+    Brain.Screen.setCursor(3,1);
+    Brain.Screen.print("Y Pos: %d", aiVision15.objects[0].centerY);
 
-  Brain.Screen.setCursor(4,1);
-  Brain.Screen.print("Width: %d", aiVision11.objects[0].width);
-  Controller.Screen.setCursor(1,1);
-  Controller.Screen.print("Width: %d", aiVision11.objects[0].width);
+    Brain.Screen.setCursor(4,1);
+    Brain.Screen.print("Width: %d", aiVision15.objects[0].width);
 
-  Brain.Screen.setCursor(5,1);
-  Brain.Screen.print("Height: %d", aiVision11.objects[0].height);
-  Controller.Screen.setCursor(2,1);
-  Controller.Screen.print("Height: %d", aiVision11.objects[0].height);
+    Brain.Screen.setCursor(5,1);
+    Brain.Screen.print("Height: %d", aiVision15.objects[0].height);
+
+    Brain.Screen.setCursor(6,1);
+    Brain.Screen.print("Origin X: %d", aiVision15.objects[0].originX);
+
+    Brain.Screen.setCursor(7,1);
+    Brain.Screen.print("Origin Y: %d", aiVision15.objects[0].originY);
+  } 
 }
 
 void blue_Info(){
   Brain.Screen.clearScreen();
   Controller.Screen.clearScreen();
   
-  Brain.Screen.setCursor(1,1);
-  Brain.Screen.print("Blue Ring");
+  aiVision15.takeSnapshot(aiVision15_Blue);
+  if (aiVision15.objects[0].id == 2) {
+    Brain.Screen.setCursor(1,1);
+    Brain.Screen.print("Blue Ring");
     
-  Brain.Screen.setCursor(2,1);
-  Brain.Screen.print("X Pos: %d", aiVision11.objects[0].centerX);
+    Brain.Screen.setCursor(2,1);
+    Brain.Screen.print("X Pos: %d", aiVision15.objects[0].centerX);
     
-  Brain.Screen.setCursor(3,1);
-  Brain.Screen.print("Y Pos: %d", aiVision11.objects[0].centerY);
+    Brain.Screen.setCursor(3,1);
+    Brain.Screen.print("Y Pos: %d", aiVision15.objects[0].centerY);
 
-  Brain.Screen.setCursor(4,1);
-  Brain.Screen.print("Width: %d", aiVision11.objects[0].width);
-  Controller.Screen.setCursor(1,1);
-  Controller.Screen.print("Width: %d", aiVision11.objects[0].width);
+    Brain.Screen.setCursor(4,1);
+    Brain.Screen.print("Width: %d", aiVision15.objects[0].width);
 
-  Brain.Screen.setCursor(5,1);
-  Brain.Screen.print("Height: %d", aiVision11.objects[0].height);
-  Controller.Screen.setCursor(2,1);
-  Controller.Screen.print("Height: %d", aiVision11.objects[0].height);
+    Brain.Screen.setCursor(5,1);
+    Brain.Screen.print("Height: %d", aiVision15.objects[0].height);
+
+    Brain.Screen.setCursor(6,1);
+    Brain.Screen.print("Origin X: %d", aiVision15.objects[0].originX);
+
+    Brain.Screen.setCursor(7,1);
+    Brain.Screen.print("Origin Y: %d", aiVision15.objects[0].originY);
+  } 
 }
 
-void Track_Red(){ 
-  // Take a snapshot of the red objects detected by the AI Vision Sensor.
-  aiVision11.takeSnapshot(AIVision11__Red);
-
-  if (aiVision11.objects[0].id == 1){
-    red_Info();  
-  }
-}
-
-/* void Stack(){
-  aiVision11.takeSnapshot(aivision::ALL_COLORS);
-  
-  if (aiVision11.objects[0].id == 1){ // Red Ring
-    red_Info();
-    if (aiVision11.objects[0].centerX > 0){
-      Drivetrain.driveFor(reverse, aiVision11.objects[0].centerX * 0.2646, mm);
-      Drivetrain.stop();
-    }
-    else{
-      Drivetrain.driveFor(forward, aiVision11.objects[0].centerX * 0.2646,mm);
-      Drivetrain.stop();
-    }
-  }
-
-  if (aiVision11.objects[0].id == 2){ // Blue Ring
-    blue_Info();
-    if (aiVision11.objects[0].height > 50){
-      Drivetrain.driveFor(reverse, aiVision11.objects[0].centerX * 0.2646, mm);
-      Drivetrain.stop();
-    }
-    else{
-      Drivetrain.stop();
-      Drivetrain.driveFor(forward, 100, mm);
-      Drivetrain.stop();
-    }
-  }
-}
-
-void aiGetXPos( ){
-  // aiVision1.takeSnapshot(colors[index]);
-  aiVision11.takeSnapshot(aivision::ALL_COLORS);
-
+void yellow_Info(){
   Brain.Screen.clearScreen();
-  Brain.Screen.setCursor(2, 1);
-  Brain.Screen.print("x pos: %d", aiVision11.objects[0].centerX);
-  // the AI Vision Sensor automatically sorts objects by size. The largest object is assigned index 0, 
-  //with smaller objects receiving higher index numbers.
-  if (aiVision11.objectCount > 0) {
-      double wid = aiVision11.objects[0].width; // unit in pixels
-      int angle = aiVision11.objects[0].angle;
-      //double disValue = Distance1.objectDistance(mm);
+  Controller.Screen.clearScreen();
+  
+  aiVision15.takeSnapshot(aiVision15_Yellow);
+  if (aiVision15.objects[0].id == 3) {
+    Brain.Screen.setCursor(1,1);
+    Brain.Screen.print("Mobile Stake");
+    
+    Brain.Screen.setCursor(2,1);
+    Brain.Screen.print("X Pos: %d", aiVision15.objects[0].centerX);
+    
+    Brain.Screen.setCursor(3,1);
+    Brain.Screen.print("Y Pos: %d", aiVision15.objects[0].centerY);
 
-    if (aiVision11.objects[0].id == 1){ // or == redRing 
+    Brain.Screen.setCursor(4,1);
+    Brain.Screen.print("Width: %d", aiVision15.objects[0].width);
 
-      Controller.Screen.clearScreen();
-      Controller.Screen.setCursor(1,1);
-      Controller.Screen.print("Largest OBJ: redRing") ;
-      Controller.Screen.clearScreen();
-      Controller.Screen.setCursor(2,1);
-      // Controller1.Screen.print("angle: %d, angle"， angle) ;
-      // width is: %.1f, angle: %d", wid, angle );
-    } 
+    Brain.Screen.setCursor(5,1);
+    Brain.Screen.print("Height: %d", aiVision15.objects[0].height);
 
+    Brain.Screen.setCursor(6,1);
+    Brain.Screen.print("Origin X: %d", aiVision15.objects[0].originX);
 
-    else if (aiVision11.objects[0].id == 2){ // or == blueRing 
-
-      Controller.Screen.clearScreen();
-      Controller.Screen.setCursor(1,1);
-      Controller.Screen.print(" Largest OBJ: blueRing");
-      Controller.Screen.clearScreen();
-      Controller.Screen.setCursor(2,1);
-      // Controller1.Screen.print("distance Value: %.1f mm "，disValue);
-      // , width is: %.1f, angle: %d, distan: %.1f", wid, angle, distan);
-    } 
-  }
-  else{
-    Controller.Screen.clearScreen();
-    Controller.Screen.setCursor(1,1);
-    Controller.Screen.print("no obj found");
-  }
+    Brain.Screen.setCursor(7,1);
+    Brain.Screen.print("Origin Y: %d", aiVision15.objects[0].originY);
+  } 
 }
 
-*/
+/* GPS Sensor */
 
-/* GPS Sensor Functions */
+gps GPS20 = gps(PORT20, 0);
+
+/* GPS Sensor Methods */
 
 double getXY(){
   Controller.Screen.setCursor(1,1);
@@ -231,42 +183,47 @@ double getXY(){
   return x_Pos, y_Pos;
 }
 
+/* Distance Sensor */
 
-double Track(double x_Pos, double y_Pos) {
-  if (y_Pos > 1250){
-    Drivetrain.driveFor(y_Pos-1250, mm);
-  }
+distance Distance11 = distance(PORT11); 
 
-  if (y_Pos < 1130){
-    Drivetrain.driveFor(1130 - y_Pos, mm);
-  }
-  else{
-    Drivetrain.stop();
-  }
-  return x_Pos, y_Pos;
+double dis_Info(){
+    if (Distance11.isObjectDetected() == true){
+        double val_Dis = Distance11.objectDistance(mm);
+        return val_Dis;
+    }
+}
+
+double Track_redRing_1(){
+    red_Info();
+    double val_Dis = dis_Info();
+
+    if (aiVision15.objects[0].originX < 0 && val_Dis < 60){
+      Drivetrain.stop(); 
+      Intake.spin(forward, 50, percent);
+    }
+
+    double y_Pos = getXY();
+    if (y_Pos < 1300){
+      Drivetrain.driveFor(y_Pos - 1800, mm);
+    }
+    
+    else if (y_Pos > 1700){
+      Drivetrain.stop();
+    }
+    return y_Pos;
 } 
 
 int main() {
-
-    Controller.Screen.clearScreen();
     Brain.Screen.clearScreen();
+    Controller.Screen.clearScreen();
 
-    Drivetrain.setDriveVelocity(25, pct);
-    Drivetrain.setTurnVelocity(50, pct);
+    // Drivetrain.setDriveVelocity(25, pct);
+    // Drivetrain.setTurnVelocity(50, pct);
     
-    GPS20.resetHeading();
-    GPS20.calibrate();
-    
-    while(1) {
-      Track_Red();
+    while(1) {        
 
-      //double x_Pos = getXY();
-      //double y_Pos = getXY();
-      //Track(x_Pos, y_Pos);
-      //return 0;
-
-      // Allow other tasks to run
-      this_thread::sleep_for(10);
-      wait(20, msec);
+        // Allow other tasks to run
+        this_thread::sleep_for(10);
     }
 }

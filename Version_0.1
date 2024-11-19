@@ -1,0 +1,155 @@
+#include "vex.h"
+
+using namespace vex;
+
+vex::brain       Brain;
+
+competition Competition;
+
+// define your global instances of motors and other devices here
+
+/* Controller */
+
+controller Controller = (controllerType::primary);
+
+/*
+    Axis1 - Left & Right of the Right Joystick
+    Axis2 - Up & Down of the Right Joystick
+    Axis3 - Up & Down of the Left Joystick
+    Axis4 - Left & Right of the Left Joystick
+*/
+
+/* Motors */
+
+motor LeftMotorA(PORT3, gearSetting::ratio18_1, true); //
+motor LeftMotorB(PORT2, gearSetting::ratio18_1, false); // because of gearing, middle one is opposite
+motor LeftMotorC(PORT1, gearSetting::ratio18_1, true); //
+
+motor RightMotorA(PORT8, gearSetting::ratio18_1, false);
+motor RightMotorB(PORT9, gearSetting::ratio18_1, true); // because of gearing, middle one is opposite
+motor RightMotorC(PORT10, gearSetting::ratio18_1, false);
+
+motor_group leftMotors = motor_group(LeftMotorA,LeftMotorB,LeftMotorC);
+motor_group rightMotors = motor_group(RightMotorA, RightMotorB,RightMotorC);
+drivetrain Drivetrain = drivetrain(leftMotors, rightMotors, 259.34, 320, 40, mm, 1);
+
+/* AI Vision Sensor */
+
+enum gameElements {
+  mobileGoal,
+  redRing,
+  blueRing,
+};
+
+// AI Vision Color Descriptions
+aivision::colordesc aiVision15_Red(1, 235, 77, 139, 30, 0.3);
+aivision::colordesc aiVision15_Blue(2, 55, 147, 200, 28, 0.3);
+aivision::colordesc aiVision15_Yellow(3, 183, 220, 130, 30, 0.75);
+
+// AI Vision Code Descriptions
+vex::aivision aiVision15(PORT15, aiVision15_Red, aiVision15_Blue, aiVision15_Yellow, aivision::ALL_AIOBJS);
+
+
+/* GPS Sensor */
+
+gps GPS20 = gps(PORT20, 0);
+
+/* Distance Sensor */
+
+distance Distance11 = distance(PORT11); 
+
+/*---------------------------------------------------------------------------*/
+/*                          Pre-Autonomous Functions                         */
+/*                                                                           */
+/*  You may want to perform some actions before the competition starts.      */
+/*  Do them in the following function.  You must return from this function   */
+/*  or the autonomous and usercontrol tasks will not be started.  This       */
+/*  function is only called once after the V5 has been powered on and        */
+/*  not every time that the robot is disabled.                               */
+/*---------------------------------------------------------------------------*/
+
+void pre_auton(void) {
+  // Current Limiting  
+  
+
+  /* Motors */
+  
+  /*
+  LeftMotorA.setStopping(brakeType::brake);
+  LeftMotorB.setStopping(brakeType::brake);
+  LeftMotorC.setStopping(brakeType::brake);
+  RightMotorA.setStopping(brakeType::brake);
+  RightMotorB.setStopping(brakeType::brake);
+  RightMotorC.setStopping(brakeType::brake);
+
+  double maxCurrent = 2.5; //hardware maximum current is 2.5A
+
+  LeftMotorA.setMaxTorque(maxCurrent, currentUnits::amp);
+  LeftMotorB.setMaxTorque(maxCurrent, currentUnits::amp);
+  RightMotorA.setMaxTorque(maxCurrent, currentUnits::amp);
+  RightMotorB.setMaxTorque(maxCurrent, currentUnits::amp);
+
+  */
+
+}
+
+/*---------------------------------------------------------------------------*/
+/*                                                                           */
+/*                              Autonomous Task                              */
+/*                                                                           */
+/*  This task is used to control your robot during the autonomous phase of   */
+/*  a VEX Competition.                                                       */
+/*                                                                           */
+/*  You must modify the code to add your own robot specific commands here.   */
+/*---------------------------------------------------------------------------*/
+
+void autonomous(void) {
+  // ..........................................................................
+  // Insert autonomous user code here.
+  // ..........................................................................
+}
+
+/*---------------------------------------------------------------------------*/
+/*                                                                           */
+/*                              User Control Task                            */
+/*                                                                           */
+/*  This task is used to control your robot during the user control phase of */
+/*  a VEX Competition.                                                       */
+/*                                                                           */
+/*  You must modify the code to add your own robot specific commands here.   */
+/*---------------------------------------------------------------------------*/
+
+void usercontrol(void) {
+  // User control code here, inside the loop
+  while (1) {
+    // This is the main execution loop for the user control program.
+    // Each time through the loop your program should update motor + servo
+    // values based on feedback from the joysticks.
+
+    // ........................................................................
+    // Insert user code here. This is where you use the joystick values to
+    // update your motors, etc.
+    // ........................................................................
+
+    wait(20, msec); // Sleep the task for a short amount of time to
+                    // prevent wasted resources.
+  }
+}
+
+//
+// Main will set up the competition functions and callbacks.
+//
+int main() {
+  // Set up callbacks for autonomous and driver control periods.
+  Competition.autonomous(autonomous);
+  Competition.drivercontrol(usercontrol);
+
+  // Run the pre-autonomous function.
+  pre_auton();
+  Controller.Screen.clearScreen();
+
+  // Prevent main from exiting with an infinite loop.
+  while (true) {
+    wait(100, msec);
+  }
+}
